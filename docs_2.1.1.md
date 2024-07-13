@@ -46,7 +46,7 @@ If `shift`<=0 then indexes of all values after the value with `index` will decre
 Deletes elements with the specified keys from `table`
 ### Params:
 1. table: table - table for excluding values
-2. ...: any - indexes of values to be excluded
+2. ...: any - keys of values to be excluded
 
 ## get
 Returns a new table containing the values with the specified keys from `table`
@@ -75,6 +75,16 @@ If `recursive`, it also overlays subtables
 ### Returns:
 1. table - overlay result
 
+## Proxy
+Creates a proxy for `table`
+### Params:
+1. table: table - table create a Proxy for
+2. index?: table|fun(table: table, key: any): any - The 'index' field in the metatable. If param is nil, field is `table`.
+3. new_index?: boolean|table|fun(table: table, key: any, value: any) - The 'newindex' field in the metatable. If param is true, field is missing. If param is false or nil, field is default error.
+4. meta?: any - The 'metatable' field in the metatable. If param is true, field is missing. If param is false or nil, field is default string.
+### Returns:
+1. table - proxy for `table`
+
 ## shift
 Changes indexes of every value of `table` by `distance`
 ### Params:
@@ -92,11 +102,15 @@ Returns a new table with every `step` value from `table` with indexes between `s
 1. table - slice of `table`
 
 ## unpack
-Returns elements from `table`
+Returns values from `table`
 ### Params:
 1. table: table - table to be unpacked
 2. mode?:
-    * 'i' - Returns elements with integer key>0. It is equivalent to `table.unpack`
-    * 'a' (default) - Returns elements with any key
+    * "i" - Returns elements with integer key>0. It is equivalent to `table.unpack`
+    * "a" (default) - Returns elements with any key
 ### Returns:
 1. ...: any - values from `table`
+
+# Constants
+## VERSION
+Current module version ("2.1.1")
