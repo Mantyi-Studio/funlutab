@@ -29,7 +29,8 @@ Returns a copy of `table`. These tables are different objects so editing the 1st
 If `recursive`, it also copies subtables
 ### Params:
 1. table: table - table to copy
-2. recursive?: booleab - whether to copy subtables
+2. recursive?: boolean - whether to copy subtables
+3. to?: table - Table where `table` needs to be copied. It **DOES NOT CLEAR** before copying
 ### Returns:
 1. table - copied table
 
@@ -65,6 +66,43 @@ If `shift`>=0 then indexes of all values after the value with `index` will incre
 3. index?: integer - default: 1
 4. shift?: number - 1 (default) or -1
 
+## max
+Returns the max value of `table` and a table containing keys it belongs to\
+If no values can be found (`table` is empty or there are no values/keys of specified `types`), returns nil and an empty table\
+If `mode` param is 'k', on the contrary it returns the max key of `table` and a table containing values belonging to it
+### Params:
+1. table: table
+2. mode?:
+   * "v" (default) - apply to values
+   * "k" - apply to keys
+4. types?: { number?: boolean, string?: boolean, table?: boolean, userdata?: boolean } - Value of what types this function will look for. Default: `{number=true}`
+### Returns:
+1. any
+2. any[]
+
+## min
+Returns the min value of `table` and a table containing keys it belongs to\
+If no values can be found (`table` is empty or there are no values/keys of specified `types`), returns nil and an empty table\
+If `mode` param is 'k', on the contrary it returns the min key of `table` and a table containing values belonging to it
+### Params:
+1. table: table
+2. mode?:
+   * "v" (default) - apply to values
+   * "k" - apply to keys
+4. types?: { number?: boolean, string?: boolean, table?: boolean, userdata?: boolean } - Value of what types this function will look for. Default: `{number=true}`
+### Returns:
+1. any
+2. any[]
+
+## multiply
+Multiplies all `table` values of specified `types`\
+If no values can be found (`table` is empty or there are no values/keys of specified `types`), returns nil
+### Params:
+1. table: table
+2. types?: { number?: boolean, table?: boolean, userdata?: boolean } - Value of what types this function will multiply. Default: `{number=true}`
+### Returns:
+1. any
+
 ## overlay
 Overlays tables on top of each other\
 Returns a new table with the fields of the 1st table are replaced by the fields of the 2nd table, etc. If a field is nil, it doesn't replace the previous field.\
@@ -85,6 +123,11 @@ Creates a proxy for `table`
 ### Returns:
 1. table - proxy for `table`
 
+## reverse
+Reverses `table` *in-place*
+### Params:
+1. table: table
+
 ## shift
 Changes indexes of every value of `table` by `distance`
 ### Params:
@@ -101,13 +144,22 @@ Returns a new table with every `step` value from `table` with indexes between `s
 ### Returns:
 1. table - slice of `table`
 
+## sum
+Sums all `table` values of specified `types`\
+If no values can be found (`table` is empty or there are no values/keys of specified `types`), returns nil
+### Params:
+1. table: table
+2. types?: { number?: boolean, table?: boolean, userdata?: boolean } - Value of what types this function will sum. Default: `{number=true}`
+### Returns:
+1. any
+
 ## unpack
 Returns values from `table`
 ### Params:
 1. table: table - table to be unpacked
 2. mode?:
-    * "i" - Returns elements with integer key>0. It is equivalent to `table.unpack`
     * "a" (default) - Returns elements with any key
+    * "i" - Returns elements with integer key>0. It is equivalent to `table.unpack`
 ### Returns:
 1. ...: any - values from `table`
 
