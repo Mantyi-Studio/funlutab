@@ -220,7 +220,7 @@ do
 	---Sums all `table` values of specified `types`\
 	---If no values can be found (`table` is empty or there are no values/keys of specified `types`), returns nil
 	---@param table table
-	---@param types? {number?: boolean, table?: boolean, userdata?: boolean} Value of what types this function will multiply. Default: `{number=true}`
+	---@param types? {number?: boolean, table?: boolean, userdata?: boolean} Value of what types this function will sum. Default: `{number=true}`
 	---@return any
 	function M.sum(table, types)
 		types=types or default_types
@@ -266,15 +266,12 @@ end
 
 ---Reverses `table` *in-place*
 ---@param table table
----@return table
 function M.reverse(table)
-	local original=M.copy(table)
-	local max=M.max(original, 'k')
-	local min=M.min(original, 'k')
-	for i=max, min, -1 do
-		table[min+(max-i)]=original[i]
+	local max=M.max(table, 'k')
+	local min=M.min(table, 'k')
+	for i=min, max/2 do
+		table[i], table[max-(i-min)]=table[max-(i-min)], table[i]
 	end
-	return table
 end
 
 ---Changes indexes of every element of `table` by `distance`
