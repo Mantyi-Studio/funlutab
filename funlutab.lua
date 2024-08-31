@@ -44,6 +44,7 @@ end
 ---@param table table
 ---@param ... any
 function M.add(table, ...)
+	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 	local v1, v2=...
 	if v2 then for _, value in ipairs({...}) do table[#table+1]=value end
 	else table[#table+1]=v1
@@ -56,9 +57,12 @@ function M.clear(...)
 	local t1, t2=...
 	if t2 then
 		for _, table in ipairs({...}) do
+			if type(table)~='table' then error('Funlutab: params `...` must be tables', 2) end
 			for k in pairs(table) do table[k]=nil end
 		end
-	else for k in pairs(t1) do t1[k]=nil end
+	else
+		if type(t1)~='table' then error('Funlutab: params `...` must be tables', 2) end
+		for k in pairs(t1) do t1[k]=nil end
 	end
 end
 
@@ -67,7 +71,10 @@ end
 ---@return table
 function M.concat(...)
 	local tables={}
-	for i, table in ipairs({...}) do tables[i]=M.copy(table, true) end
+	for i, table in ipairs({...}) do
+		if type(table)~='table' then error('Funlutab: params `...` must be tables', 2) end
+		tables[i]=M.copy(table, true)
+	end
 	for i=2, #tables do M.shift(tables[i], #tables[i-1]) end
 	local table=M.overlay(M.unpack(tables, 'i'))
 	return table
@@ -79,13 +86,14 @@ end
 ---@param to? table Table where `table` needs to be copied. It DOES NOT CLEAR before copying
 ---@return table
 function M.copy(table, recursive, to)
-	local t=to or {}
+	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
+	to=to or {}
 	if type(to)~='table' then error('Funlutab: param `to` must be table', 2) end
 	for k, v in pairs(table) do
 		if type(v)=='table' and recursive then v=M.copy(v, true) end
-		t[k]=v
+		to[k]=v
 	end
-	return t
+	return to
 end
 
 ---Deletes the element of `table` with `index`
@@ -95,6 +103,7 @@ end
 ---@param index integer
 ---@param shift? number -1 (default) or 1
 function M.delete(table, index, shift)
+	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 	if type(index)~='number' then error('Funlutab: param `index` must be number', 2) end
 	if shift and type(shift)~='number' then error('Funlutab: param `shift` must be number', 2) end
 	if shift and shift>0 then shift=1
@@ -109,6 +118,7 @@ end
 ---@param table table
 ---@param ... any
 function M.exclude(table, ...)
+	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 	for _, k in ipairs({...}) do table[k]=nil end
 end
 
@@ -117,6 +127,7 @@ end
 ---@param ... any
 ---@return table
 function M.get(table, ...)
+	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 	local t={}
 	for _, k in ipairs({...}) do t[k]=table[k] end
 	return t
@@ -130,7 +141,10 @@ end
 ---@param index? integer default: 1
 ---@param shift? number 1 (default) or -1
 function M.insert(table, value, index, shift)
+	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 	index=index or 1
+	if type(index)~='number' then error('Funlutab: param `index` must be number', 2) end
+	if shift and type(shift)~='number' then error('Funlutab: param `shift` must be number', 2) end
 	if shift and shift<0 then shift=-1
 	else shift=1
 	end
@@ -157,6 +171,7 @@ do
 	---@param types? {number?: boolean, string?: boolean, table?: boolean, userdata?: boolean} Value of what types this function will look for. Default: `{number=true}`
 	---@return any, any[]
 	function M.max(table, mode, types)
+		if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 		mode=mode or 'v'
 		if not apply_mode_values[mode] then error('Funlutab: `mode` param must be "k" or "v"', 2) end
 		types=types or default_types
@@ -184,6 +199,7 @@ do
 	---@param types? {number?: boolean, string?: boolean, table?: boolean, userdata?: boolean} Value of what types this function will look for. Default: `{number=true}`
 	---@return any, any[]
 	function M.min(table, mode, types)
+		if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 		mode=mode or 'v'
 		if not apply_mode_values[mode] then error('Funlutab: mode param must be "k" or "v"', 2) end
 		types=types or default_types
@@ -209,6 +225,7 @@ do
 	---@param types? {number?: boolean, table?: boolean, userdata?: boolean} Value of what types this function will multiply. Default: `{number=true}`
 	---@return any
 	function M.multiply(table, types)
+		if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 		types=types or default_types
 		local result
 		for _, value in pairs(table) do
@@ -223,6 +240,7 @@ do
 	---@param types? {number?: boolean, table?: boolean, userdata?: boolean} Value of what types this function will sum. Default: `{number=true}`
 	---@return any
 	function M.sum(table, types)
+		if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 		types=types or default_types
 		local result=0
 		for _, value in pairs(table) do
@@ -243,6 +261,7 @@ function M.overlay(recursive, ...)
 	local subtables
 	if recursive then subtables={} end
 	for _, table in ipairs({...}) do
+		if type(table)~='table' then error('Funlutab: params `...` must be tables', 2) end
 		for k, v in pairs(table) do
 			if recursive then
 				if type(v)=='table' then
@@ -267,6 +286,7 @@ end
 ---Reverses `table` *in-place*
 ---@param table table
 function M.reverse(table)
+	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 	local max=M.max(table, 'k')
 	local min=M.min(table, 'k')
 	for i=min, max/2 do
@@ -278,6 +298,7 @@ end
 ---@param table table
 ---@param distance integer
 function M.shift(table, distance)
+	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 	if type(distance)~='number' then error('Funlutab: param `distance` must be number', 2) end
 	distance=math.floor(distance)
 	if distance>0 then
@@ -294,6 +315,7 @@ end
 ---@param step? integer default: 1
 ---@return table
 function M.slice(table, start, end_, step)
+	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 	start=start or 1
 	end_=end_ or #table
 	step=step or 1
@@ -313,6 +335,7 @@ end
 ---@param table table
 ---@param mode? funlutab.unpack_mode
 function M.unpack(table, mode)
+	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 	mode=mode or 'a'
 	if mode~='a' and mode~='i' then error('Funlutab: param `mode` must be "a" or "i"', 2) end
 	local elements={}
