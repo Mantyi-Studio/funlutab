@@ -4,8 +4,9 @@
 local M={}
 
 ---Module version
-M.VERSION='2.1.1'
+M.VERSION='2.2'
 
+--Proxy
 do
 	local edit_error=function() return error("You can't edit this table!", 2) end
 	---Returns proxy for `table`
@@ -61,7 +62,7 @@ function M.clear(...)
 	end
 end
 
----Concatenates the specified tables
+---Concatenates the specified tables (creates new table)
 ---@param ... table
 ---@return table
 function M.concat(...)
@@ -73,13 +74,13 @@ function M.concat(...)
 end
 
 ---Returns a copy of `table`. These tables are different objects so editing the 1st table doesn't edit the 2nd table.
----
----If `recursive`, it also copies subtables
 ---@param table table
----@param recursive? boolean
+---@param recursive? boolean whether to copy subtables
+---@param to? table Table where `table` needs to be copied. It DOES NOT CLEAR before copying
 ---@return table
-function M.copy(table, recursive)
-	local t={}
+function M.copy(table, recursive, to)
+	local t=to or {}
+	if type(to)~='table' then error('Funlutab: param `to` must be table', 2) end
 	for k, v in pairs(table) do
 		if type(v)=='table' and recursive then v=M.copy(v, true) end
 		t[k]=v
@@ -94,6 +95,8 @@ end
 ---@param index integer
 ---@param shift? number -1 (default) or 1
 function M.delete(table, index, shift)
+	if type(index)~='number' then error('Funlutab: param `index` must be number', 2) end
+	if shift and type(shift)~='number' then error('Funlutab: param `shift` must be number', 2) end
 	if shift and shift>0 then shift=1
 	else shift=-1
 	end
@@ -137,10 +140,100 @@ function M.insert(table, value, index, shift)
 	table[index]=value
 end
 
----Overlays tables on top of each other
----
----Returns a new table with the fields of the 1st table are replaced by the fields of the 2nd table, etc. If a field is nil, it doesn't replace the previous field.
----
+--max, min, multiply, sum
+do
+	---@alias funlutab.apply_mode
+	---|>'v' Apply to values
+	---|'k' Apply to keys
+
+	local apply_mode_values={v=true, k=true}
+	local default_types={number=true}
+
+	---Returns the max value of `table` and a table containing keys it belongs to\
+	---If no values can be found (`table` is empty or there are no values/keys of specified `types`), returns nil and an empty table\
+	---If `mode` param is 'k', on the contrary it returns the max key of `table` and a table containing values belonging to it
+	---@param table table
+	---@param mode? funlutab.apply_mode
+	---@param types? {number?: boolean, string?: boolean, table?: boolean, userdata?: boolean} Value of what types this function will look for. Default: `{number=true}`
+	---@return any, any[]
+	function M.max(table, mode, types)
+		mode=mode or 'v'
+		if not apply_mode_values[mode] then error('Funlutab: `mode` param must be "k" or "v"', 2) end
+		types=types or default_types
+		if type(types)~='table' then error('Funlutab: `types` param must be table', 2) end
+		local main
+		local extras={}
+		for extra, value in pairs(table) do
+			if mode=='k' then extra, value=value, extra end
+			if types[type(value)] and (not main or main<=value) then
+				if main~=value then
+					main=value
+					M.clear(extras)
+				end
+				M.add(extras, extra)
+			end
+		end
+		return main, extras
+	end
+
+	---Returns the min value of `table` and a table containing keys it belongs to\
+	---If no values can be found (`table` is empty or there are no values/keys of specified `types`), returns nil and an empty table\
+	---If `mode` param is 'k', on the contrary it returns the min key of `table` and a table containing values belonging to it
+	---@param table table
+	---@param mode? funlutab.apply_mode
+	---@param types? {number?: boolean, string?: boolean, table?: boolean, userdata?: boolean} Value of what types this function will look for. Default: `{number=true}`
+	---@return any, any[]
+	function M.min(table, mode, types)
+		mode=mode or 'v'
+		if not apply_mode_values[mode] then error('Funlutab: mode param must be "k" or "v"', 2) end
+		types=types or default_types
+		if type(types)~='table' then error('Funlutab: `types` param must be table', 2) end
+		local main
+		local extras={}
+		for extra, value in pairs(table) do
+			if mode=='k' then extra, value=value, extra end
+			if types[type(value)] and (not main or main>=value) then
+				if main~=value then
+					main=value
+					M.clear(extras)
+				end
+				M.add(extras, extra)
+			end
+		end
+		return main, extras
+	end
+
+	---Multiplies all `table` values of specified `types`\
+	---If no values can be found (`table` is empty or there are no values/keys of specified `types`), returns nil
+	---@param table table
+	---@param types? {number?: boolean, table?: boolean, userdata?: boolean} Value of what types this function will multiply. Default: `{number=true}`
+	---@return any
+	function M.multiply(table, types)
+		types=types or default_types
+		local result
+		for _, value in pairs(table) do
+			if types[type(value)] then result=(result or 1)*value end
+		end
+		return result
+	end
+
+	---Sums all `table` values of specified `types`\
+	---If no values can be found (`table` is empty or there are no values/keys of specified `types`), returns nil
+	---@param table table
+	---@param types? {number?: boolean, table?: boolean, userdata?: boolean} Value of what types this function will multiply. Default: `{number=true}`
+	---@return any
+	function M.sum(table, types)
+		types=types or default_types
+		local result=0
+		for _, value in pairs(table) do
+			if types[type(value)] then result=(result or 0)+value end
+		end
+		return result
+	end
+end
+
+---Overlays tables on top of each other\
+---Returns a new table with the fields of the 1st table are replaced by the fields of the 2nd table, etc. If a field is nil, it doesn't replace the previous field.\
 ---If `recursive`, it also overlays subtables
 ---@param recursive boolean
 ---@param ... table
@@ -171,10 +264,24 @@ function M.overlay(recursive, ...)
 	return t
 end
 
+---Reverses `table` *in-place*
+---@param table table
+---@return table
+function M.reverse(table)
+	local original=M.copy(table)
+	local max=M.max(original, 'k')
+	local min=M.min(original, 'k')
+	for i=max, min, -1 do
+		table[min+(max-i)]=original[i]
+	end
+	return table
+end
+
 ---Changes indexes of every element of `table` by `distance`
 ---@param table table
 ---@param distance integer
 function M.shift(table, distance)
+	if type(distance)~='number' then error('Funlutab: param `distance` must be number', 2) end
 	distance=math.floor(distance)
 	if distance>0 then
 		for i=#table, -distance, -1 do table[i+distance]=table[i] end
@@ -193,20 +300,24 @@ function M.slice(table, start, end_, step)
 	start=start or 1
 	end_=end_ or #table
 	step=step or 1
+	if type(start)~='number' then error('Funlutab: param `start` must be number', 2) end
+	if type(end_)~='number' then error('Funlutab: param `end_` must be number', 2) end
+	if type(step)~='number' then error('Funlutab: param `step` must be number', 2) end
 	local t={}
 	for i=start, end_, step do t[i]=table[i] end
 	return t
 end
 
 ---@alias funlutab.unpack_mode
----|'i' Returns elements with integer key>0. It is equivalent to table.unpack
 ---|>'a' Returns elements with any key
+---|'i' Returns elements with integer key>0. It is equivalent to table.unpack
 
 ---Returns elements from `table`
 ---@param table table
 ---@param mode? funlutab.unpack_mode
 function M.unpack(table, mode)
 	mode=mode or 'a'
+	if mode~='a' and mode~='i' then error('Funlutab: param `mode` must be "a" or "i"', 2) end
 	local elements={}
 	local specific={}
 	if mode=='i' then
@@ -223,7 +334,7 @@ function M.unpack(table, mode)
 			M.add(elements, 'table['..k..']')
 		end
 	end
-	return loadstring('return function(table, specific) return '.._G.table.concat(elements, ', ')..' end')()(table, specific)
+	return load('return function(table, specific) return '.._G.table.concat(elements, ', ')..' end')()(table, specific)
 end
 
 return M
