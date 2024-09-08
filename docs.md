@@ -165,4 +165,4 @@ Returns values from `table`
 
 # Constants
 ## VERSION
-Current module version ("2.1.1")
+Current module version ("2.2.1")
