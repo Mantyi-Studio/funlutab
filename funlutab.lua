@@ -4,7 +4,7 @@
 local M={}
 
 ---Module version
-M.VERSION='2.2'
+M.VERSION='2.2.1'
 
 --Proxy
 do
@@ -75,8 +75,9 @@ function M.concat(...)
 		if type(table)~='table' then error('Funlutab: params `...` must be tables', 2) end
 		tables[i]=M.copy(table, true)
 	end
-	for i=2, #tables do M.shift(tables[i], #tables[i-1]) end
-	local table=M.overlay(M.unpack(tables, 'i'))
+	for i=2, #tables do M.shift(tables[i], (M.max(tables[i-1], 'k')) or 0) end
+	print(M.unpack(tables, 'i'))
+	local table=M.overlay(false, M.unpack(tables, 'i'))
 	return table
 end
 
@@ -289,8 +290,10 @@ function M.reverse(table)
 	if type(table)~='table' then error('Funlutab: param `table` must be table', 2) end
 	local max=M.max(table, 'k')
 	local min=M.min(table, 'k')
-	for i=min, max/2 do
-		table[i], table[max-(i-min)]=table[max-(i-min)], table[i]
+	if min then
+		for i=min, max/2 do
+			table[i], table[max-(i-min)]=table[max-(i-min)], table[i]
+		end
 	end
 end
 
@@ -302,9 +305,15 @@ function M.shift(table, distance)
 	if type(distance)~='number' then error('Funlutab: param `distance` must be number', 2) end
 	distance=math.floor(distance)
 	if distance>0 then
-		for i=#table, -distance, -1 do table[i+distance]=table[i] end
+		local min=M.min(table, 'k')
+		if min then
+			for i=M.max(table, 'k'), min-distance, -1 do table[i+distance]=table[i] end
+		end
 	elseif distance<0 then
-		for i=1, #table-distance do table[i+distance]=table[i] end
+		local min=M.min(table, 'k')
+		if min then
+			for i=min, M.max(table, 'k')-distance do table[i+distance]=table[i] end
+		end
 	end
 end
 
